@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useClerk } from "@clerk/clerk-react";
 import { Tournament, UserProfile } from "../types";
 import CountdownTimer from "./CountdownTimer";
 import { convertToBengaliNumbers } from "../utils/dateFormatter";
@@ -23,6 +24,7 @@ export default function TournamentModal({
   onJoin,
   supportWhatsAppNumber,
 }: TournamentModalProps) {
+  const clerk = useClerk();
   const [teamName, setTeamName] = useState(currentUser?.teamName || "");
   const [ignName, setIgnName] = useState(currentUser?.ignName || "");
   const [slotCount, setSlotCount] = useState(1);
@@ -112,8 +114,8 @@ export default function TournamentModal({
   const balanceDisplay = currentUser ? (isBengali ? convertToBengaliNumbers(currentUser.balance) : currentUser.balance) : "0";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl lg:max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden max-h-[85vh] flex flex-col shadow-2xl animate-fade-in my-auto">
         {/* Header Banner */}
         <div className="relative p-6 border-b border-white/10 bg-gradient-to-r from-violet-950/20 to-black/40 flex items-start justify-between">
           <div>
@@ -498,15 +500,29 @@ export default function TournamentModal({
                 </div>
               ) : (
                 /* USER NOT LOGGED IN PROMPT */
-                <div className="p-4 bg-black/40 border border-white/5 rounded-xl text-center">
-                  <p className="text-xs text-zinc-400 font-mono mb-3">
+                <div className="p-5 bg-black/40 border border-white/10 rounded-xl text-center space-y-3">
+                  <p className="text-xs text-zinc-300 font-mono leading-relaxed">
                     {isBengali 
-                      ? "টুর্নামেন্টে অংশগ্রহণ করার জন্য লগইন করতে হবে।" 
+                      ? "টুর্নামেন্টে অংশগ্রহণ করার জন্য একাউন্টে লগইন করতে হবে।" 
                       : "Please login to your account to reserve a slot."}
                   </p>
-                  <span className="inline-block text-xs font-bold font-mono text-violet-400 hover:text-violet-300">
-                    {isBengali ? "লগইন করুন / একাউন্ট খুলুন" : "Login or Sign Up"}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (clerk && clerk.openSignIn) {
+                        clerk.openSignIn();
+                      } else {
+                        window.location.href = "/sign-in";
+                      }
+                    }}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold font-mono uppercase tracking-wider rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-violet-950/50 flex items-center justify-center gap-2 cursor-pointer border border-violet-500/30"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    {isBengali ? "লগইন করুন / একাউন্ট খুলুন" : "Login or Create Account"}
+                  </button>
                 </div>
               )}
 

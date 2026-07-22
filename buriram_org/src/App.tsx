@@ -343,11 +343,11 @@ export default function App() {
         {/* Header Right Terminal Controls */}
         <div className="flex items-center gap-1 sm:gap-3.5 shrink-0">
           
-          {/* Language Switcher */}
-          <div className="flex bg-white/5 border border-white/10 rounded-lg p-0.5 shrink-0">
+          {/* Language Switcher (Desktop Only - Hidden on Mobile) */}
+          <div className="hidden sm:flex bg-white/5 border border-white/10 rounded-lg p-0.5 shrink-0">
             <button
               onClick={() => setIsBengali(true)}
-              className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[9px] sm:text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
                 isBengali 
                   ? "bg-violet-600 text-white shadow-md shadow-violet-950/40" 
                   : "text-zinc-400 hover:text-white"
@@ -357,7 +357,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setIsBengali(false)}
-              className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[9px] sm:text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
                 !isBengali 
                   ? "bg-violet-600 text-white shadow-md shadow-violet-950/40" 
                   : "text-zinc-400 hover:text-white"
@@ -586,8 +586,8 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Support Helpline in mobile sidebar */}
-        <div className="pt-6 border-t border-white/10 space-y-3">
+        {/* Support Helpline & Language Switcher in mobile sidebar footer */}
+        <div className="pt-4 border-t border-white/10 space-y-3">
           <div className="bg-violet-950/30 border border-violet-500/20 rounded-xl p-3">
             <p className="text-[10px] text-violet-300 font-bold uppercase mb-1" style={{ fontFamily: isBengali ? "'Hind Siliguri', sans-serif" : "'Comfortaa', sans-serif" }}>
               {isBengali ? "সহায়তা কেন্দ্র" : "Support Helpline"}
@@ -600,6 +600,40 @@ export default function App() {
             >
               WhatsApp Support
             </a>
+          </div>
+
+          {/* Mobile Navigation Footer Language Switcher */}
+          <div className="bg-zinc-900/90 border border-white/10 rounded-xl p-2.5 flex flex-col gap-2">
+            <span 
+              className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider text-center"
+              style={{ fontFamily: isBengali ? "'Hind Siliguri', sans-serif" : "'Comfortaa', sans-serif" }}
+            >
+              {isBengali ? "ভাষা নির্বাচন করুন" : "SELECT LANGUAGE"}
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setIsBengali(true)}
+                className={`py-2 px-3 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5 border active:scale-95 ${
+                  isBengali 
+                    ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-950/50" 
+                    : "bg-black/40 text-zinc-400 border-white/5 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span>🇧🇩</span>
+                <span>বাংলা</span>
+              </button>
+              <button
+                onClick={() => setIsBengali(false)}
+                className={`py-2 px-3 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5 border active:scale-95 ${
+                  !isBengali 
+                    ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-950/50" 
+                    : "bg-black/40 text-zinc-400 border-white/5 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span>🇬🇧</span>
+                <span>English</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>

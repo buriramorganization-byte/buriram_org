@@ -31,6 +31,8 @@ export default function AdminPanel({ tournaments, transactions, siteSettings, is
   const [globalRules, setGlobalRules] = useState(siteSettings.globalRules || "");
   const [bKashNumber, setBKashNumber] = useState(siteSettings.bKashNumber || "");
   const [nagadNumber, setNagadNumber] = useState(siteSettings.nagadNumber || "");
+  const [bKashInstructions, setBKashInstructions] = useState(siteSettings.bKashInstructions || "");
+  const [nagadInstructions, setNagadInstructions] = useState(siteSettings.nagadInstructions || "");
   const [whatsAppNumber, setWhatsAppNumber] = useState(siteSettings.whatsAppNumber || "");
   const [customAnnouncement, setCustomAnnouncement] = useState(siteSettings.customAnnouncement || "");
   const [enableBannerTextOverlay, setEnableBannerTextOverlay] = useState(siteSettings.enableBannerTextOverlay ?? false);
@@ -46,6 +48,8 @@ export default function AdminPanel({ tournaments, transactions, siteSettings, is
     setGlobalRules(siteSettings.globalRules || "");
     setBKashNumber(siteSettings.bKashNumber || "");
     setNagadNumber(siteSettings.nagadNumber || "");
+    setBKashInstructions(siteSettings.bKashInstructions || "");
+    setNagadInstructions(siteSettings.nagadInstructions || "");
     setWhatsAppNumber(siteSettings.whatsAppNumber || "");
     setCustomAnnouncement(siteSettings.customAnnouncement || "");
     setEnableBannerTextOverlay(siteSettings.enableBannerTextOverlay ?? false);
@@ -133,6 +137,8 @@ export default function AdminPanel({ tournaments, transactions, siteSettings, is
         globalRules: globalRules.trim(),
         bKashNumber: bKashNumber.trim(),
         nagadNumber: nagadNumber.trim(),
+        bKashInstructions: bKashInstructions.trim(),
+        nagadInstructions: nagadInstructions.trim(),
         whatsAppNumber: whatsAppNumber.trim(),
         customAnnouncement: customAnnouncement.trim(),
         enableBannerTextOverlay: !!enableBannerTextOverlay
@@ -857,8 +863,8 @@ export default function AdminPanel({ tournaments, transactions, siteSettings, is
 
           {/* Verification Modal for Admin Reference Payout Input */}
           {selectedTxn && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-              <form onSubmit={handleVerifyTxnSubmit} className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-4 shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+              <form onSubmit={handleVerifyTxnSubmit} className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar my-auto">
                 <h4 className="text-sm font-bold text-white uppercase border-b border-zinc-800 pb-2 mb-2">
                   {isBengali ? "অনুমোদন নিশ্চিতকরণ" : "CONFIRM VERIFICATION ACTION"}
                 </h4>
@@ -1108,6 +1114,33 @@ export default function AdminPanel({ tournaments, transactions, siteSettings, is
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-pink-400 font-bold mb-1 text-xs uppercase">
+                {isBengali ? "bKash টাকা পাঠানোর নিয়মাবলী (Instructions)" : "BKASH PAYMENT INSTRUCTIONS"}
+              </label>
+              <textarea
+                value={bKashInstructions}
+                onChange={(e) => setBKashInstructions(e.target.value)}
+                placeholder={isBengali ? "যেমন:\n১. পার্সোনাল একাউন্ট থেকে সেন্ড মানি করুন।\n২. নিচে TxnID সাবমিট করুন।" : "e.g.:\n1. Send money from personal account.\n2. Enter TxnID below."}
+                className="w-full p-2.5 bg-zinc-950 border border-pink-500/30 focus:border-pink-500 rounded text-white h-28 font-sans text-xs leading-relaxed"
+                style={{ fontFamily: "'Hind Siliguri', 'Comfortaa', sans-serif" }}
+              />
+            </div>
+            <div>
+              <label className="block text-orange-400 font-bold mb-1 text-xs uppercase">
+                {isBengali ? "Nagad টাকা পাঠানোর নিয়মাবলী (Instructions)" : "NAGAD PAYMENT INSTRUCTIONS"}
+              </label>
+              <textarea
+                value={nagadInstructions}
+                onChange={(e) => setNagadInstructions(e.target.value)}
+                placeholder={isBengali ? "যেমন:\n১. পার্সোনাল একাউন্ট থেকে সেন্ড মানি করুন।\n২. নিচে TxnID সাবমিট করুন।" : "e.g.:\n1. Send money from personal account.\n2. Enter TxnID below."}
+                className="w-full p-2.5 bg-zinc-950 border border-orange-500/30 focus:border-orange-500 rounded text-white h-28 font-sans text-xs leading-relaxed"
+                style={{ fontFamily: "'Hind Siliguri', 'Comfortaa', sans-serif" }}
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-zinc-500 mb-1">{isBengali ? "গ্লোবাল টুর্নামেন্ট নিয়মাবলী" : "GLOBAL RULES & REGULATIONS"}</label>
             <textarea
@@ -1196,7 +1229,7 @@ export default function AdminPanel({ tournaments, transactions, siteSettings, is
       {/* Confirmation Modal Overlay */}
       {confirmModal && confirmModal.isOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-zinc-900 border border-violet-500/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+          <div className="bg-zinc-900 border border-violet-500/40 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative max-h-[85vh] overflow-y-auto custom-scrollbar my-auto">
             <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-rose-500 animate-ping shrink-0" />
               {confirmModal.title}

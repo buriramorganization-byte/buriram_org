@@ -80,7 +80,7 @@ export default function GamingProfileModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in font-sans">
       <div 
-        className="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl p-6 shadow-2xl relative text-slate-100"
+        className="w-full max-w-lg lg:max-w-xl bg-slate-900 border border-slate-700/80 rounded-2xl p-6 shadow-2xl relative text-slate-100 max-h-[85vh] overflow-y-auto custom-scrollbar flex flex-col my-auto"
         style={{ fontFamily: isBengali ? "'Hind Siliguri', 'Comfortaa', sans-serif" : "'Comfortaa', sans-serif" }}
       >
         {/* Header Icon */}

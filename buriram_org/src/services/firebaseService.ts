@@ -32,6 +32,8 @@ export async function initializeSiteSettings(): Promise<SiteSettings> {
     enableBannerTextOverlay: false,
     bKashNumber: "+8801700000000",
     nagadNumber: "+8801800000000",
+    bKashInstructions: "",
+    nagadInstructions: "",
     customAnnouncement: ""
   };
 
@@ -61,6 +63,8 @@ export async function initializeSiteSettings(): Promise<SiteSettings> {
         enableBannerTextOverlay: existing.enableBannerTextOverlay ?? defaultSettings.enableBannerTextOverlay,
         bKashNumber: existing.bKashNumber ?? defaultSettings.bKashNumber,
         nagadNumber: existing.nagadNumber ?? defaultSettings.nagadNumber,
+        bKashInstructions: existing.bKashInstructions ?? defaultSettings.bKashInstructions,
+        nagadInstructions: existing.nagadInstructions ?? defaultSettings.nagadInstructions,
         whatsAppNumber: existing.whatsAppNumber ?? defaultSettings.whatsAppNumber,
         customAnnouncement: existing.customAnnouncement ?? defaultSettings.customAnnouncement
       };
@@ -86,6 +90,8 @@ export function subscribeSiteSettings(onUpdate: (settings: SiteSettings) => void
     enableBannerTextOverlay: false,
     bKashNumber: "+8801700000000",
     nagadNumber: "+8801800000000",
+    bKashInstructions: "",
+    nagadInstructions: "",
     whatsAppNumber: "+8801700000000",
     customAnnouncement: ""
   };
@@ -106,6 +112,8 @@ export function subscribeSiteSettings(onUpdate: (settings: SiteSettings) => void
         enableBannerTextOverlay: existing.enableBannerTextOverlay ?? defaultSettings.enableBannerTextOverlay,
         bKashNumber: existing.bKashNumber ?? defaultSettings.bKashNumber,
         nagadNumber: existing.nagadNumber ?? defaultSettings.nagadNumber,
+        bKashInstructions: existing.bKashInstructions ?? defaultSettings.bKashInstructions,
+        nagadInstructions: existing.nagadInstructions ?? defaultSettings.nagadInstructions,
         whatsAppNumber: existing.whatsAppNumber ?? defaultSettings.whatsAppNumber,
         customAnnouncement: existing.customAnnouncement ?? defaultSettings.customAnnouncement
       });

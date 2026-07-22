@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserProfile, Transaction, SiteSettings } from "../types";
 import { submitTransaction } from "../services/firebaseService";
 import { convertToBengaliNumbers } from "../utils/dateFormatter";
@@ -9,11 +9,18 @@ interface CashierViewProps {
   transactions: Transaction[];
   siteSettings: SiteSettings;
   isBengali: boolean;
+  autoOpenDepositModal?: boolean;
 }
 
-export default function CashierView({ currentUser, transactions, siteSettings, isBengali }: CashierViewProps) {
+export default function CashierView({ currentUser, transactions, siteSettings, isBengali, autoOpenDepositModal }: CashierViewProps) {
   const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
   const [showWithdrawMoneyModal, setShowWithdrawMoneyModal] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenDepositModal) {
+      setShowAddMoneyModal(true);
+    }
+  }, [autoOpenDepositModal]);
   const [activeFilter, setActiveFilter] = useState<"All" | "Deposit" | "Withdrawal">("All");
 
   // Form states

@@ -278,7 +278,7 @@ export default function App() {
   const supportPhone = siteSettings?.whatsAppNumber || siteSettings?.bKashNumber || "+8801700000000";
 
   return (
-    <div className="min-h-screen bg-game-dark flex flex-col text-zinc-100 select-none antialiased selection:bg-violet-600 selection:text-white">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-game-dark flex flex-col text-zinc-100 select-none antialiased selection:bg-violet-600 selection:text-white">
       
       {/* 1. Strict Brand loading screen */}
       <Loader logoUrl={siteSettings?.logoUrl} isVisible={showLoader} />
@@ -291,12 +291,12 @@ export default function App() {
       />
 
       {/* 3. Header section */}
-      <header className="h-16 border-b border-white/10 bg-[#0a0a0a] flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Mobile Three-Dot / Hamburger Left Sidebar Toggle */}
+      <header className="h-16 border-b border-white/10 bg-[#0a0a0a] flex items-center justify-between px-2.5 sm:px-6 z-30 sticky top-0 w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+          {/* Mobile Hamburger / Close Left Sidebar Toggle */}
           <button
             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            className="sm:hidden p-2 text-zinc-300 hover:text-white bg-white/5 border border-white/10 rounded-lg cursor-pointer transition-all active:scale-95 flex items-center justify-center mr-1"
+            className="sm:hidden p-1.5 sm:p-2 text-zinc-300 hover:text-white bg-white/5 border border-white/10 rounded-lg cursor-pointer transition-all active:scale-95 flex items-center justify-center shrink-0"
             aria-label="Toggle Mobile Navigation Menu"
           >
             {isMobileSidebarOpen ? (
@@ -304,10 +304,8 @@ export default function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 fill-current text-white" viewBox="0 0 24 24">
-                <circle cx="12" cy="5" r="2.2" />
-                <circle cx="12" cy="12" r="2.2" />
-                <circle cx="12" cy="19" r="2.2" />
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             )}
           </button>
@@ -315,27 +313,27 @@ export default function App() {
           {/* Brand Logo & Name */}
           <div 
             onClick={handleBrandClick}
-            className="flex items-center gap-3 cursor-pointer hover:opacity-90 active:scale-95 transition-all group"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-90 active:scale-95 transition-all group shrink-0"
           >
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.5)] group-hover:scale-105 group-active:scale-95 transition-all overflow-hidden">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.5)] group-hover:scale-105 group-active:scale-95 transition-all overflow-hidden shrink-0">
               {siteSettings?.logoUrl ? (
                 <img 
                   src={siteSettings.logoUrl} 
                   alt="BURIRAM ORG" 
-                  className="h-8 w-8 object-contain rounded-full"
+                  className="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-full"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               )}
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-sm sm:text-base font-black tracking-tighter text-white uppercase group-hover:text-violet-400 transition-colors">
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-xs sm:text-base font-black tracking-tighter text-white uppercase group-hover:text-violet-400 transition-colors truncate">
                 BURIRAM <span className="text-violet-500">ORG</span>
               </h1>
-              <span className="font-mono text-[9px] text-zinc-500 font-bold uppercase tracking-widest -mt-1">
+              <span className="font-mono text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest -mt-0.5 hidden xs:inline block truncate">
                 Buriram Official
               </span>
             </div>
@@ -343,13 +341,13 @@ export default function App() {
         </div>
 
         {/* Header Right Terminal Controls */}
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-1 sm:gap-3.5 shrink-0">
           
           {/* Language Switcher */}
-          <div className="flex bg-white/5 border border-white/10 rounded-lg p-0.5">
+          <div className="flex bg-white/5 border border-white/10 rounded-lg p-0.5 shrink-0">
             <button
               onClick={() => setIsBengali(true)}
-              className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
+              className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[9px] sm:text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
                 isBengali 
                   ? "bg-violet-600 text-white shadow-md shadow-violet-950/40" 
                   : "text-zinc-400 hover:text-white"
@@ -359,7 +357,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setIsBengali(false)}
-              className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
+              className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[9px] sm:text-[10px] font-mono font-bold uppercase transition-all cursor-pointer ${
                 !isBengali 
                   ? "bg-violet-600 text-white shadow-md shadow-violet-950/40" 
                   : "text-zinc-400 hover:text-white"
@@ -371,7 +369,7 @@ export default function App() {
 
           {/* Logged in User state with Balance */}
           {currentUserProfile ? (
-            <div className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 p-1.5 pr-4 pl-3 rounded-full text-xs font-mono">
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/5 border border-white/10 p-1 sm:p-1.5 pr-2 sm:pr-3 pl-1.5 sm:pl-3 rounded-full text-xs font-mono shrink-0">
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-[10px] font-bold text-white truncate max-w-[100px]">{currentUserProfile.name}</span>
                 {currentUserProfile.role === "admin" && (
@@ -388,7 +386,7 @@ export default function App() {
               {/* Gaming Profile Button */}
               <button
                 onClick={() => setIsGamingProfileModalOpen(true)}
-                className="flex items-center gap-1 px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-lg transition-all text-[10px] font-sans font-bold cursor-pointer"
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-lg transition-all text-[9px] sm:text-[10px] font-sans font-bold cursor-pointer shrink-0"
                 title="Gaming Profile (Team & IGN)"
               >
                 <span>🎮</span>
@@ -396,35 +394,35 @@ export default function App() {
                   {currentUserProfile.teamName ? currentUserProfile.teamName : (isBengali ? "প্রোফাইল সেট" : "Set IGN")}
                 </span>
               </button>
-              <div className="h-7 w-px bg-white/10"></div>
+              <div className="h-5 sm:h-7 w-px bg-white/10"></div>
               <div className="flex flex-col justify-center">
-                <span className="text-[8px] text-zinc-400 uppercase tracking-widest leading-none mb-0.5">
+                <span className="text-[7px] sm:text-[8px] text-zinc-400 uppercase tracking-widest leading-none mb-0.5">
                   {isBengali ? "ব্যালেন্স" : "Wallet"}
                 </span>
-                <span className="font-bold text-emerald-400 font-sans leading-none">
+                <span className="font-bold text-emerald-400 font-sans leading-none text-[10px] sm:text-xs">
                   ৳ {isBengali ? convertToBengaliNumbers(currentUserProfile.balance) : currentUserProfile.balance}
                 </span>
               </div>
-              <div className="h-7 w-px bg-white/10"></div>
+              <div className="h-5 sm:h-7 w-px bg-white/10"></div>
               <button 
                 onClick={handleLogout}
-                className="text-rose-400 hover:text-rose-300 font-bold ml-1 cursor-pointer uppercase text-[10px]"
+                className="text-rose-400 hover:text-rose-300 font-bold ml-0.5 cursor-pointer uppercase text-[9px] sm:text-[10px] shrink-0"
               >
                 {isBengali ? "লগআউট" : "Logout"}
               </button>
             </div>
           ) : (
             /* Guest Login Button */
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 onClick={handleLoginClick}
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 hover:scale-105 active:scale-95 text-white font-mono text-xs font-bold rounded-lg transition-all cursor-pointer shadow-md uppercase"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-violet-600 hover:bg-violet-500 hover:scale-105 active:scale-95 text-white font-mono text-[11px] sm:text-xs font-bold rounded-lg transition-all cursor-pointer shadow-md uppercase shrink-0"
               >
                 {isBengali ? "লগইন" : "Login"}
               </button>
               <button
                 onClick={handleLoginClick}
-                className="hidden sm:inline-block px-3.5 py-2 text-zinc-400 hover:text-white font-mono text-xs font-bold transition-colors cursor-pointer uppercase border border-white/5 hover:border-white/20 rounded-lg bg-white/5"
+                className="hidden sm:inline-block px-3.5 py-2 text-zinc-400 hover:text-white font-mono text-xs font-bold transition-colors cursor-pointer uppercase border border-white/5 hover:border-white/20 rounded-lg bg-white/5 shrink-0"
               >
                 {isBengali ? "ফ্রি সাইন আপ" : "Sign Up Free"}
               </button>
@@ -797,30 +795,30 @@ export default function App() {
                 </div>
 
                 {/* Sub-navigation tabs for Scrims/Tournaments */}
-                <div className="flex bg-zinc-950/60 backdrop-blur border border-white/10 rounded-xl p-1 gap-1 max-w-2xl self-start font-sans">
+                <div className="flex bg-zinc-950/60 backdrop-blur border border-white/10 rounded-xl p-1 gap-1 w-full max-w-2xl font-sans overflow-x-auto custom-scrollbar">
                   <button
                     onClick={() => setGamingSubTab("matches")}
-                    className={`flex-1 px-4 py-2.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer text-center relative ${
+                    className={`flex-1 min-w-[100px] px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer text-center relative shrink-0 ${
                       gamingSubTab === "matches"
                         ? "bg-violet-600/20 text-violet-300 font-extrabold border-b-2 border-violet-500 shadow-md"
                         : "text-zinc-400 hover:text-white hover:bg-white/5 border-b-2 border-transparent"
                     }`}
                   >
-                    {isBengali ? "ম্যাচসমূহ (Match List)" : "Match List"}
+                    {isBengali ? "ম্যাচসমূহ" : "Match List"}
                   </button>
                   <button
                     onClick={() => setGamingSubTab("multi_slots")}
-                    className={`flex-1 px-4 py-2.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer text-center relative ${
+                    className={`flex-1 min-w-[120px] px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer text-center relative shrink-0 ${
                       gamingSubTab === "multi_slots"
                         ? "bg-violet-600/20 text-violet-300 font-extrabold border-b-2 border-violet-500 shadow-md"
                         : "text-zinc-400 hover:text-white hover:bg-white/5 border-b-2 border-transparent"
                     }`}
                   >
-                    {isBengali ? "মাল্টিপল স্লট ও টাইম" : "Multiple Slots & Times"}
+                    {isBengali ? "মাল্টি স্লট" : "Multiple Slots"}
                   </button>
                   <button
                     onClick={() => setGamingSubTab("rules")}
-                    className={`flex-1 px-4 py-2.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer text-center relative ${
+                    className={`flex-1 min-w-[100px] px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer text-center relative shrink-0 ${
                       gamingSubTab === "rules"
                         ? "bg-violet-600/20 text-violet-300 font-extrabold border-b-2 border-violet-500 shadow-md"
                         : "text-zinc-400 hover:text-white hover:bg-white/5 border-b-2 border-transparent"

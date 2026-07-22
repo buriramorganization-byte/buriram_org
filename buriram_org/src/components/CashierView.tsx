@@ -373,9 +373,9 @@ export default function CashierView({ currentUser, transactions, siteSettings, i
 
       {/* ==================== ADD MONEY MODAL ==================== */}
       {showAddMoneyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-8">
-            <div className="p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#140a2c] to-black">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg lg:max-w-xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[85vh] flex flex-col">
+            <div className="shrink-0 p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#140a2c] to-black">
               <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
                 <span className="p-1 rounded bg-emerald-500/10 text-emerald-400">
                   <Plus className="w-4 h-4" />
@@ -390,7 +390,7 @@ export default function CashierView({ currentUser, transactions, siteSettings, i
               </button>
             </div>
 
-            <form onSubmit={handleAddMoneySubmit} className="p-6 space-y-5">
+            <form onSubmit={handleAddMoneySubmit} className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
               
               {/* Method Selector */}
               <div className="space-y-2">
@@ -530,9 +530,9 @@ export default function CashierView({ currentUser, transactions, siteSettings, i
 
       {/* ==================== WITHDRAW MONEY MODAL ==================== */}
       {showWithdrawMoneyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-8">
-            <div className="p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#140a2c] to-black">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg lg:max-w-xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[85vh] flex flex-col">
+            <div className="shrink-0 p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#140a2c] to-black">
               <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
                 <span className="p-1 rounded bg-rose-500/10 text-rose-400">
                   <ArrowUpRight className="w-4 h-4" />
@@ -547,7 +547,7 @@ export default function CashierView({ currentUser, transactions, siteSettings, i
               </button>
             </div>
 
-            <form onSubmit={handleWithdrawMoneySubmit} className="p-6 space-y-5">
+            <form onSubmit={handleWithdrawMoneySubmit} className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
               
               {/* Method Selector */}
               <div className="space-y-2">

@@ -54,6 +54,13 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("Champion Rush");
   const [gamingSubTab, setGamingSubTab] = useState<"matches" | "multi_slots" | "rules">("matches");
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [autoOpenDepositModal, setAutoOpenDepositModal] = useState(false);
+
+  const handleOpenDepositModal = () => {
+    setSelectedTournament(null);
+    setActiveTab("Cashier");
+    setAutoOpenDepositModal(true);
+  };
 
   // Dual Scroll Architecture: Lock Body Scroll when Mobile Sidebar is Open
   useEffect(() => {
@@ -891,6 +898,9 @@ export default function App() {
                                   tournament={nextUpcomingTournament} 
                                   isBengali={isBengali} 
                                   onSelect={(t) => setSelectedTournament(t)}
+                                  currentUser={currentUserProfile}
+                                  onOpenDeposit={handleOpenDepositModal}
+                                  supportWhatsAppNumber={supportPhone}
                                 />
                               )}
 
@@ -979,6 +989,7 @@ export default function App() {
                 transactions={transactions}
                 siteSettings={siteSettings!}
                 isBengali={isBengali}
+                autoOpenDepositModal={autoOpenDepositModal}
               />
             )}
 
@@ -1029,6 +1040,7 @@ export default function App() {
           onClose={() => setSelectedTournament(null)}
           onJoin={handleJoinTournament}
           supportWhatsAppNumber={supportPhone}
+          onOpenDeposit={handleOpenDepositModal}
         />
       )}
 

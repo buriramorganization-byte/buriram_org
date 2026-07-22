@@ -432,11 +432,30 @@ export default function CashierView({ currentUser, transactions, siteSettings, i
                   <ChevronRight className="w-4 h-4 text-violet-500" />
                   <span>{isBengali ? "টাকা পাঠানোর নিয়মাবলী:" : "HOW TO PAY:"}</span>
                 </p>
-                <p className="text-zinc-400 leading-relaxed">
-                  1. {isBengali ? "আপনার পার্সোনাল একাউন্ট থেকে" : "From your Personal account,"}{" "}
-                  <span className="text-white font-bold">{isBengali ? "সেন্ড মানি (Send Money)" : "Send Money"}</span>{" "}
-                  {isBengali ? "করুন।" : "to our number below."}
-                </p>
+
+                {(() => {
+                  const customRules = method === "bKash" ? siteSettings?.bKashInstructions : siteSettings?.nagadInstructions;
+                  if (customRules && customRules.trim()) {
+                    return (
+                      <div className="text-zinc-300 space-y-1.5 text-xs leading-relaxed font-sans bg-black/40 p-3 rounded-xl border border-white/5">
+                        {customRules.split("\n").filter(Boolean).map((line, idx) => (
+                          <p key={idx} className="flex items-start gap-1.5">
+                            <span className="text-violet-400 font-bold font-mono">•</span>
+                            <span className="text-zinc-300">{line}</span>
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p className="text-zinc-400 leading-relaxed">
+                      1. {isBengali ? "আপনার পার্সোনাল একাউন্ট থেকে" : "From your Personal account,"}{" "}
+                      <span className="text-white font-bold">{isBengali ? "সেন্ড মানি (Send Money)" : "Send Money"}</span>{" "}
+                      {isBengali ? "করুন।" : "to our number below."}
+                    </p>
+                  );
+                })()}
+
                 <div className="p-3 bg-[#0a0a0a] border border-white/15 rounded-xl flex items-center justify-between text-white font-bold">
                   <span className="font-mono">
                     {method === "bKash" ? "bKash:" : "Nagad:"}{" "}

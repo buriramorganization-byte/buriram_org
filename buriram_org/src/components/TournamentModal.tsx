@@ -503,26 +503,48 @@ export default function TournamentModal({
                 <div className="p-5 bg-black/40 border border-white/10 rounded-xl text-center space-y-3">
                   <p className="text-xs text-zinc-300 font-mono leading-relaxed">
                     {isBengali 
-                      ? "টুর্নামেন্টে অংশগ্রহণ করার জন্য একাউন্টে লগইন করতে হবে।" 
-                      : "Please login to your account to reserve a slot."}
+                      ? "টুর্নামেন্টে অংশগ্রহণ করার জন্য একাউন্টে লগইন বা সাইন আপ করুন।" 
+                      : "Please login or create an account to reserve a slot."}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      if (clerk && clerk.openSignIn) {
-                        clerk.openSignIn();
-                      } else {
-                        window.location.href = "/sign-in";
-                      }
-                    }}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold font-mono uppercase tracking-wider rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-violet-950/50 flex items-center justify-center gap-2 cursor-pointer border border-violet-500/30"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                    </svg>
-                    {isBengali ? "লগইন করুন / একাউন্ট খুলুন" : "Login or Create Account"}
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (clerk && clerk.openSignIn) {
+                          clerk.openSignIn();
+                        } else {
+                          window.location.href = "/sign-in";
+                        }
+                      }}
+                      className="w-full py-2.5 px-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold font-mono uppercase tracking-wider rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-violet-950/50 flex items-center justify-center gap-2 cursor-pointer border border-violet-500/30"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
+                      {isBengali ? "লগইন করুন" : "Sign In"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (clerk && clerk.openSignUp) {
+                          clerk.openSignUp();
+                        } else if (clerk && clerk.openSignIn) {
+                          clerk.openSignIn();
+                        } else {
+                          window.location.href = "/sign-in";
+                        }
+                      }}
+                      className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold font-mono uppercase tracking-wider rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 cursor-pointer border border-emerald-500/30"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                      </svg>
+                      {isBengali ? "একাউন্ট খুলুন" : "Create Account"}
+                    </button>
+                  </div>
                 </div>
               )}
 

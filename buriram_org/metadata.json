@@ -1,6 +1,0 @@
-{
-  "name": "BURIGANGA ORG",
-  "description": "Free Fire Dedicated Esports & Tournament Platform with automated announcements, cashier, and live matchmaking.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

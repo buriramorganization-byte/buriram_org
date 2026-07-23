@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Tournament, UserProfile } from "../types";
 import { convertToBengaliNumbers, formatShortDateTime } from "../utils/dateFormatter";
 import { registerForMultipleTournaments } from "../services/firebaseService";
-import { Clock, CheckSquare, Square, Layers, ShieldCheck, Trophy } from "lucide-react";
+import { sortTournamentsByPriority, processMatch } from "../utils/tournamentSorter";
+import { Clock, CheckSquare, Square, Layers, ShieldCheck, Trophy, AlertTriangle } from "lucide-react";
 
 interface MultiTimeSlotBookingProps {
   tournaments: Tournament[];
@@ -17,12 +18,15 @@ export default function MultiTimeSlotBooking({
   isBengali,
   onRefreshData
 }: MultiTimeSlotBookingProps) {
-  const championRushTournaments = tournaments.filter(
-    (t) => t.category === "Champion Rush" && 
-      t.status === "Upcoming" && 
-      new Date(t.startDateTime).getTime() > Date.now() && 
-      (t.totalSlots - t.takenSlots) > 0
-  );
+  const [selectedCategory, setSelectedCategory] = useState<"All" | "Champion Rush" | "Scrims" | "Paid Tournaments">("All");
+
+  const filteredTournaments = tournaments.filter((t) => {
+    if (t.status === "Completed") return false;
+    if (selectedCategory === "All") return true;
+    return t.category === selectedCategory;
+  });
+
+  const processedMatches = sortTournamentsByPriority(filteredTournaments);
 
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [slotsPerMatch, setSlotsPerMatch] = useState<number>(1);
@@ -31,27 +35,30 @@ export default function MultiTimeSlotBooking({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
 
-  if (championRushTournaments.length === 0) {
-    return null; // Hide if no active Champion Rush time-slots
+  if (processedMatches.length === 0) {
+    return null;
   }
 
-  const toggleSelectMatch = (id: string) => {
+  const toggleSelectMatch = (id: string, isBookingClosed: boolean) => {
+    if (isBookingClosed) return;
     setSelectedMatchIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
+  const bookableMatches = processedMatches.filter(p => !p.isBookingClosed);
+
   const toggleSelectAll = () => {
-    if (selectedMatchIds.length === championRushTournaments.length) {
+    if (selectedMatchIds.length === bookableMatches.length && bookableMatches.length > 0) {
       setSelectedMatchIds([]);
     } else {
-      setSelectedMatchIds(championRushTournaments.map((t) => t.id));
+      setSelectedMatchIds(bookableMatches.map((p) => p.tournament.id));
     }
   };
 
-  const selectedTournaments = championRushTournaments.filter((t) =>
-    selectedMatchIds.includes(t.id)
-  );
+  const selectedTournaments = processedMatches
+    .filter((p) => selectedMatchIds.includes(p.tournament.id))
+    .map((p) => p.tournament);
 
   const totalFee = selectedTournaments.reduce(
     (sum, t) => sum + t.entryFee * slotsPerMatch,
@@ -116,7 +123,7 @@ export default function MultiTimeSlotBooking({
               {isBengali ? "মাল্টিপল স্লট সিলেকশন" : "MULTI-TIME SLOT SELECTION"}
             </span>
             <span className="text-emerald-400 font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-              {isBengali ? "চ্যাম্পিয়ন রাশ" : "CHAMPION RUSH"}
+              {isBengali ? "সকল ক্যাটাগরি সাপোর্টেড" : "ALL CATEGORIES SUPPORTED"}
             </span>
           </div>
           <h2 className="text-xl md:text-2xl font-black text-white uppercase italic mt-1.5 flex items-center gap-2">
@@ -125,16 +132,34 @@ export default function MultiTimeSlotBooking({
           </h2>
           <p className="text-xs text-zinc-400 font-normal mt-1">
             {isBengali
-              ? "নিচের এভেইলেবল ম্যাচগুলো থেকে আপনার পছন্দমতো টাইম-স্লটগুলো নির্বাচন করুন এবং একসাথে সকল ম্যাচে অংশগ্রহণ করুন।"
-              : "Select all your desired Champion Rush match times below and register for multiple lobbies simultaneously."}
+              ? "চ্যাম্পিয়ন রাশ, স্ক্রিম ও পেইড সহ যেকোনো ক্যাটাগরির এভেইলএবল টাইম-স্লট বেছে নিয়ে একসাথে নিবন্ধন করুন।"
+              : "Select all your desired match times across Champion Rush, Scrims & Paid Tournaments and register simultaneously."}
           </p>
+
+          {/* Category Tabs */}
+          <div className="flex items-center gap-1.5 pt-3 font-mono text-xs overflow-x-auto">
+            {(["All", "Champion Rush", "Scrims", "Paid Tournaments"] as const).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  selectedCategory === cat
+                    ? "bg-violet-600 text-white shadow-md shadow-violet-950/50"
+                    : "bg-black/40 border border-white/10 text-zinc-400 hover:text-white"
+                }`}
+              >
+                {cat === "All" ? (isBengali ? "সকল ক্যাটাগরি" : "All Categories") : cat}
+              </button>
+            ))}
+          </div>
         </div>
 
         <button
           onClick={toggleSelectAll}
           className="px-4 py-2 bg-violet-950/80 hover:bg-violet-900 border border-violet-500/40 text-violet-300 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 shrink-0"
         >
-          {selectedMatchIds.length === championRushTournaments.length ? (
+          {selectedMatchIds.length === bookableMatches.length && bookableMatches.length > 0 ? (
             <>
               <CheckSquare className="w-4 h-4 text-violet-400" />
               <span>{isBengali ? "সবগুলো আনসেলেক্ট করুন" : "Deselect All"}</span>
@@ -142,7 +167,7 @@ export default function MultiTimeSlotBooking({
           ) : (
             <>
               <Square className="w-4 h-4 text-zinc-400" />
-              <span>{isBengali ? "সবগুলো একসাথে সিলেক্ট করুন" : "Select All Time-Slots"}</span>
+              <span>{isBengali ? "সকল সচল স্লট সিলেক্ট করুন" : "Select Available Time-Slots"}</span>
             </>
           )}
         </button>
@@ -150,36 +175,58 @@ export default function MultiTimeSlotBooking({
 
       {/* List of Champion Rush Available Time-Slots */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {championRushTournaments.map((t) => {
+        {processedMatches.map((pm) => {
+          const t = pm.tournament;
           const isSelected = selectedMatchIds.includes(t.id);
-          const slotsLeft = t.totalSlots - t.takenSlots;
-          const timeDisplay = formatShortDateTime(t.startDateTime, isBengali);
+          const timeDisplay = formatShortDateTime(pm.effectiveStartDateTime, isBengali);
 
           return (
             <div
               key={t.id}
-              onClick={() => toggleSelectMatch(t.id)}
-              className={`relative p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                isSelected
-                  ? "bg-violet-900/30 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.25)]"
-                  : "bg-black/50 border-white/10 hover:border-zinc-700 hover:bg-zinc-900/50"
+              onClick={() => toggleSelectMatch(t.id, pm.isBookingClosed)}
+              className={`relative p-4 rounded-xl border transition-all flex flex-col justify-between ${
+                pm.isBookingClosed
+                  ? "bg-black/30 border-rose-500/30 opacity-75 cursor-not-allowed"
+                  : isSelected
+                  ? "bg-violet-900/30 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.25)] cursor-pointer"
+                  : "bg-black/50 border-white/10 hover:border-zinc-700 hover:bg-zinc-900/50 cursor-pointer"
               }`}
             >
-              {/* Checkbox indicator */}
+              {/* Status Header */}
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
-                    isSelected ? "bg-violet-600 text-white" : "bg-zinc-800 border border-zinc-700 text-transparent"
-                  }`}>
-                    <CheckSquare className="w-4 h-4" />
+                  {!pm.isBookingClosed ? (
+                    <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
+                      isSelected ? "bg-violet-600 text-white" : "bg-zinc-800 border border-zinc-700 text-transparent"
+                    }`}>
+                      <CheckSquare className="w-4 h-4" />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded bg-rose-950/80 border border-rose-600/50 flex items-center justify-center text-rose-400">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                      <span>{t.title}</span>
+                      {pm.isGroupC && (
+                        <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-600/30 text-emerald-300 border border-emerald-500/30">
+                          {isBengali ? "আগামীকাল" : "TOMORROW"}
+                        </span>
+                      )}
+                    </h4>
                   </div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">
-                    {t.title}
-                  </h4>
                 </div>
-                <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
-                  ৳{isBengali ? convertToBengaliNumbers(t.entryFee) : t.entryFee}
-                </span>
+
+                {pm.isLive ? (
+                  <span className="text-[9px] font-mono font-black uppercase text-white bg-rose-600 px-2 py-0.5 rounded animate-pulse">
+                    {isBengali ? "লাইভ" : "LIVE NOW"}
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                    ৳{isBengali ? convertToBengaliNumbers(t.entryFee) : t.entryFee}
+                  </span>
+                )}
               </div>
 
               {/* Time & Slot metadata */}
@@ -190,8 +237,10 @@ export default function MultiTimeSlotBooking({
                 </div>
                 <div className="flex items-center justify-between text-[11px] pt-1 border-t border-white/5">
                   <span className="text-zinc-500">{isBengali ? "বাকি স্লট:" : "Available:"}</span>
-                  <span className="font-bold text-violet-300">
-                    {isBengali ? convertToBengaliNumbers(slotsLeft) : slotsLeft} / {isBengali ? convertToBengaliNumbers(t.totalSlots) : t.totalSlots}
+                  <span className={`font-bold ${pm.isLive ? "text-rose-400" : "text-violet-300"}`}>
+                    {pm.isLive 
+                      ? (isBengali ? "বুকিং বন্ধ" : "CLOSED") 
+                      : `${isBengali ? convertToBengaliNumbers(pm.slotsLeft) : pm.slotsLeft} / ${isBengali ? convertToBengaliNumbers(t.totalSlots) : t.totalSlots}`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[11px]">

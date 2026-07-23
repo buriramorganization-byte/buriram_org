@@ -8,7 +8,8 @@ import {
   subscribeTournaments, 
   subscribeTransactions,
   registerForTournament,
-  checkOrCreateUserProfile
+  checkOrCreateUserProfile,
+  resetDailyMatches
 } from "./services/firebaseService";
 import { Tournament, Transaction, SiteSettings, UserProfile } from "./types";
 
@@ -23,9 +24,11 @@ import AdminPanel from "./components/AdminPanel";
 import LoginView from "./components/LoginView";
 import SupportButton from "./components/SupportButton";
 import { convertToBengaliNumbers } from "./utils/dateFormatter";
+import { sortTournamentsByPriority, ProcessedMatch } from "./utils/tournamentSorter";
 import { CategoryRulesView } from "./components/GameSubViews";
 import NextMatchHero from "./components/NextMatchHero";
 import MultiTimeSlotBooking from "./components/MultiTimeSlotBooking";
+import { fetchGoogleSheetSlotData } from "./services/googleSheetService";
 import GamingProfileModal from "./components/GamingProfileModal";
 
 type Tab = "Champion Rush" | "Scrims" | "Paid Tournaments" | "Cashier" | "Rules" | "Admin" | "Login";
@@ -55,6 +58,26 @@ export default function App() {
   const [gamingSubTab, setGamingSubTab] = useState<"matches" | "multi_slots" | "rules">("matches");
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [autoOpenDepositModal, setAutoOpenDepositModal] = useState(false);
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  // Real-time tick every 1 second for live match transitions, countdown updates & 1:00 AM reset
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setNowMs(now.getTime());
+
+      // 1:00 AM Daily Automatic Reset System
+      if (now.getHours() === 1 && now.getMinutes() === 0) {
+        const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const lastReset = localStorage.getItem("brm_last_auto_reset_date");
+        if (lastReset !== todayDateStr) {
+          localStorage.setItem("brm_last_auto_reset_date", todayDateStr);
+          resetDailyMatches().catch((err) => console.warn("Auto 1:00 AM reset failed:", err));
+        }
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleOpenDepositModal = () => {
     setSelectedTournament(null);
@@ -100,6 +123,13 @@ export default function App() {
 
     init();
     
+    // Fetch real-time slot availability from Google Sheet WebApp on load
+    fetchGoogleSheetSlotData().then((sheetData) => {
+      if (sheetData && sheetData.bookedSlots !== undefined) {
+        console.log(`Google Sheet synced booked slots count: ${sheetData.bookedSlots}`);
+      }
+    }).catch(err => console.warn("Google Sheet initial fetch warning:", err));
+
     // Initial site load loader timer
     const timer = setTimeout(() => {
       setShowLoader(false);
@@ -805,34 +835,79 @@ export default function App() {
                     <img
                       src={activeCategoryBanner}
                       alt={activeTab}
-                      className="absolute inset-0 w-full h-full object-cover transition-all duration-700 opacity-70"
+                      className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+                        siteSettings?.enableBannerTextOverlay ? "opacity-70" : "opacity-100"
+                      }`}
                       referrerPolicy="no-referrer"
                     />
                   ) : null}
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent z-10"></div>
+                  {siteSettings?.enableBannerTextOverlay && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent z-10"></div>
+                  )}
                   
-                  {/* Banner content */}
-                  <div className="relative p-6 md:p-8 z-20 w-full animate-fade-in">
-                    <div className="flex items-center gap-2 mb-2.5">
-                      <span className="bg-violet-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                        {isBengali ? "অফিসিয়াল টুর্নামেন্ট" : "BURIRAM VERIFIED"}
-                      </span>
-                      <span className="bg-black/50 backdrop-blur text-[9px] font-bold rounded uppercase tracking-wider border border-white/10 px-2 py-0.5 text-zinc-300">
-                        {isBengali ? "ফ্রি ফায়ার" : "Free Fire"}
-                      </span>
-                    </div>
-                    <h1 className="text-2xl md:text-5xl font-black text-white font-sans uppercase tracking-tight italic">
-                      {activeTab === "Champion Rush" ? (isBengali ? "চ্যাম্পিয়ন রাশ" : "CHAMPION RUSH") : activeTab === "Scrims" ? (isBengali ? "স্ক্রিমস টুর্নামেন্ট" : "CYBER SCRIMS") : (isBengali ? "পেইড টুর্নামেন্ট" : "PAID ESPORTS")}
-                    </h1>
-                    <p className="text-xs text-violet-400 font-mono mt-1 uppercase max-w-xl tracking-widest font-bold">
-                      {activeTab === "Champion Rush" 
+                  {/* Banner text overlay - Only shown when enableBannerTextOverlay is ON */}
+                  {siteSettings?.enableBannerTextOverlay && (() => {
+                    const currentCategoryOverlay = activeTab === "Champion Rush"
+                      ? siteSettings.championRushOverlay
+                      : activeTab === "Scrims"
+                      ? siteSettings.scrimsOverlay
+                      : siteSettings.paidOverlay;
+
+                    const currentBadge1 = currentCategoryOverlay?.badge1Text || (
+                      activeTab === "Champion Rush" ? (isBengali ? "ফাস্ট পেইস ম্যাচ" : "FAST MATCH") :
+                      activeTab === "Scrims" ? (isBengali ? "অফিসিয়াল টুর্নামেন্ট" : "BURIRAM VERIFIED") :
+                      (isBengali ? "প্রাইজপুল টুর্নামেন্ট" : "PRIZE POOL")
+                    );
+
+                    const currentBadge2 = currentCategoryOverlay?.badge2Text || (isBengali ? "ফ্রি ফায়ার" : "Free Fire");
+
+                    const currentTitle = currentCategoryOverlay?.title || (
+                      activeTab === "Champion Rush" ? (isBengali ? "চ্যাম্পিয়ন রাশ" : "CHAMPION RUSH") :
+                      activeTab === "Scrims" ? (isBengali ? "স্ক্রিমস টুর্নামেন্ট" : "CYBER SCRIMS") :
+                      (isBengali ? "পেইড টুর্নামেন্ট" : "PAID ESPORTS")
+                    );
+
+                    const currentSubtitle = currentCategoryOverlay?.subtitle || (
+                      activeTab === "Champion Rush" 
                         ? (isBengali ? "তাত্ক্ষণিক বুকিং এবং সরাসরি ফাস্ট-পেস ম্যাচ খেলা।" : "Instant squad booking & action-packed rush lobbies.") 
                         : activeTab === "Scrims" 
                         ? (isBengali ? "আপনার গিল্ডের যোগ্যতা প্রমাণ করার গ্লোবাল প্ল্যাটফর্ম।" : "Elite tier guild matchmaking & status scoring lobby.") 
-                        : (isBengali ? "বড় পুরস্কার জিতার সুবর্ণ সুযোগ, যোগ দিন আজই!" : "High stakes prize pool tournaments. Book your slot now!")}
-                    </p>
-                  </div>
+                        : (isBengali ? "বড় পুরস্কার জিতার সুবর্ণ সুযোগ, যোগ দিন আজই!" : "High stakes prize pool tournaments. Book your slot now!")
+                    );
+
+                    const currentButtonText = currentCategoryOverlay?.buttonText || (isBengali ? "বুক স্লট" : "Book Slot");
+
+                    return (
+                      <div className="relative p-6 md:p-8 z-20 w-full animate-fade-in">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <span className="bg-violet-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                            {currentBadge1}
+                          </span>
+                          <span className="bg-black/50 backdrop-blur text-[9px] font-bold rounded uppercase tracking-wider border border-white/10 px-2 py-0.5 text-zinc-300">
+                            {currentBadge2}
+                          </span>
+                        </div>
+                        <h1 className="text-2xl md:text-5xl font-black text-white font-sans uppercase tracking-tight italic">
+                          {currentTitle}
+                        </h1>
+                        <p className="text-xs text-violet-400 font-mono mt-1 uppercase max-w-xl tracking-widest font-bold">
+                          {currentSubtitle}
+                        </p>
+
+                        {currentButtonText && (
+                          <div className="mt-3">
+                            <button
+                              onClick={() => setGamingSubTab("multi_slots")}
+                              className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white font-mono text-xs font-bold uppercase rounded-lg transition-all shadow-lg shadow-violet-950/50 cursor-pointer border border-violet-400/30"
+                            >
+                              {currentButtonText}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Sub-navigation tabs for Scrims/Tournaments */}
@@ -883,19 +958,21 @@ export default function App() {
                       >
                         {(() => {
                           const activeCategoryTournaments = activeTournaments.filter(
-                            t => t.category === activeTab && t.status === "Upcoming"
+                            t => t.category === activeTab && t.status !== "Completed"
                           );
-                          const nextUpcomingTournament = activeCategoryTournaments.length > 0 ? activeCategoryTournaments[0] : null;
-                          const gridTournaments = activeTournaments.filter(
-                            t => t.id !== nextUpcomingTournament?.id
+                          const processedCategoryMatches = sortTournamentsByPriority(activeCategoryTournaments, nowMs);
+                          const heroMatch = processedCategoryMatches.length > 0 ? processedCategoryMatches[0] : null;
+                          const gridMatches = processedCategoryMatches.filter(
+                            p => p.tournament.id !== heroMatch?.tournament.id
                           );
 
                           return (
                             <>
                               {/* Premium "Next Match" Hero Update Banner */}
-                              {nextUpcomingTournament && (
+                              {heroMatch && (
                                 <NextMatchHero 
-                                  tournament={nextUpcomingTournament} 
+                                  tournament={heroMatch.tournament}
+                                  processedMatch={heroMatch} 
                                   isBengali={isBengali} 
                                   onSelect={(t) => setSelectedTournament(t)}
                                   currentUser={currentUserProfile}
@@ -907,28 +984,29 @@ export default function App() {
                               <div>
                                 <h2 className="text-lg font-bold text-white uppercase font-sans border-b border-zinc-900 pb-3 mb-6 flex items-center justify-between">
                                   <span>
-                                    {nextUpcomingTournament 
+                                    {heroMatch 
                                       ? (isBengali ? "অন্যান্য সকল ম্যাচসমূহ" : "OTHER ACTIVE & UPCOMING MATCHES")
                                       : (isBengali ? "সকল সচল ম্যাচসমূহ" : "ACTIVE & UPCOMING MATCHES")}
                                   </span>
                                   <span className="text-xs font-mono font-normal text-zinc-500">
-                                    {isBengali ? "সর্বমোট:" : "Total Matches:"} {isBengali ? convertToBengaliNumbers(gridTournaments.length) : gridTournaments.length}
+                                    {isBengali ? "সর্বমোট:" : "Total Matches:"} {isBengali ? convertToBengaliNumbers(gridMatches.length) : gridMatches.length}
                                   </span>
                                 </h2>
 
-                                {gridTournaments.length > 0 ? (
+                                {gridMatches.length > 0 ? (
                                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                    {gridTournaments.map((tournament) => (
+                                    {gridMatches.map((pm) => (
                                       <TournamentCard
-                                        key={tournament.id}
-                                        tournament={tournament}
+                                        key={pm.tournament.id}
+                                        tournament={pm.tournament}
+                                        processedMatch={pm}
                                         categoryBanner={activeCategoryBanner}
                                         isBengali={isBengali}
                                         onSelect={(t) => setSelectedTournament(t)}
                                       />
                                     ))}
                                   </div>
-                                ) : !nextUpcomingTournament ? (
+                                ) : !heroMatch ? (
                                   <div className="text-center p-16 bg-zinc-900/20 border border-zinc-800/40 rounded-2xl">
                                     <svg className="w-12 h-12 text-zinc-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />

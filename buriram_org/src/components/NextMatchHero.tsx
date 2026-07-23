@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Tournament, UserProfile } from "../types";
 import { convertToBengaliNumbers } from "../utils/dateFormatter";
+import { processMatch, ProcessedMatch } from "../utils/tournamentSorter";
 import { Clock, Users, ArrowRight, Trophy, DollarSign, Wallet, MessageSquare } from "lucide-react";
 
 interface NextMatchHeroProps {
   tournament: Tournament | null;
+  processedMatch?: ProcessedMatch;
   isBengali: boolean;
   onSelect: (tournament: Tournament) => void;
   currentUser?: UserProfile | null;
@@ -14,6 +16,7 @@ interface NextMatchHeroProps {
 
 export default function NextMatchHero({ 
   tournament, 
+  processedMatch,
   isBengali, 
   onSelect,
   currentUser,
@@ -22,11 +25,15 @@ export default function NextMatchHero({
 }: NextMatchHeroProps) {
   const [timeLeft, setTimeLeft] = useState<{ hours: string; minutes: string; seconds: string } | null>(null);
 
+  const pm = processedMatch || (tournament ? processMatch(tournament) : null);
+  const activeTournament = pm ? pm.tournament : tournament;
+
   useEffect(() => {
-    if (!tournament) return;
+    if (!activeTournament) return;
 
     const calculateTimeLeft = () => {
-      const difference = new Date(tournament.startDateTime).getTime() - Date.now();
+      const targetTime = new Date(activeTournament.startDateTime).getTime();
+      const difference = targetTime - Date.now();
       
       if (difference <= 0) {
         setTimeLeft(null);
@@ -51,43 +58,47 @@ export default function NextMatchHero({
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [tournament]);
+  }, [activeTournament?.startDateTime]);
 
-  if (!tournament) return null;
+  if (!activeTournament || !pm) return null;
 
-  const slotsLeft = tournament.totalSlots - tournament.takenSlots;
-  const isExpired = tournament.status !== "Upcoming" || new Date(tournament.startDateTime).getTime() <= Date.now();
+  const slotsLeft = pm.slotsLeft;
+  const isLive = pm.isLive;
+  const isNextDay = pm.isGroupC;
+  const isBookingClosed = pm.isBookingClosed;
   const isFull = slotsLeft <= 0;
   const isUrgent = slotsLeft <= 10 && slotsLeft > 0;
 
   const slotsLeftDisplay = isBengali ? convertToBengaliNumbers(slotsLeft) : slotsLeft;
-  const takenSlotsDisplay = isBengali ? convertToBengaliNumbers(tournament.takenSlots) : tournament.takenSlots;
-  const totalSlotsDisplay = isBengali ? convertToBengaliNumbers(tournament.totalSlots) : tournament.totalSlots;
-  const entryFeeDisplay = isBengali ? convertToBengaliNumbers(tournament.entryFee) : tournament.entryFee;
-  const prizePoolDisplay = isBengali ? convertToBengaliNumbers(tournament.prizePool) : tournament.prizePool;
+  const takenSlotsDisplay = isBengali ? convertToBengaliNumbers(pm.takenSlots) : pm.takenSlots;
+  const totalSlotsDisplay = isBengali ? convertToBengaliNumbers(activeTournament.totalSlots) : activeTournament.totalSlots;
+  const entryFeeDisplay = isBengali ? convertToBengaliNumbers(activeTournament.entryFee) : activeTournament.entryFee;
+  const prizePoolDisplay = isBengali ? convertToBengaliNumbers(activeTournament.prizePool) : activeTournament.prizePool;
 
   const hDisplay = timeLeft ? (isBengali ? convertToBengaliNumbers(timeLeft.hours) : timeLeft.hours) : "00";
   const mDisplay = timeLeft ? (isBengali ? convertToBengaliNumbers(timeLeft.minutes) : timeLeft.minutes) : "00";
   const sDisplay = timeLeft ? (isBengali ? convertToBengaliNumbers(timeLeft.seconds) : timeLeft.seconds) : "00";
 
-  const registeredSquads = tournament.slots || [];
+  const registeredSquads = activeTournament.slots || [];
 
   // Check if current user has insufficient balance
-  const hasInsufficientBalance = currentUser !== undefined && currentUser !== null && tournament.entryFee > 0 && currentUser.balance < tournament.entryFee;
+  const hasInsufficientBalance = currentUser !== undefined && currentUser !== null && activeTournament.entryFee > 0 && currentUser.balance < activeTournament.entryFee;
 
   // Build WhatsApp support URL
   const cleanPhone = supportWhatsAppNumber.replace(/\D/g, "");
   const whatsAppText = encodeURIComponent(
-    `Hello Buriram Org, I want to book a slot via WhatsApp for "${tournament.title}".\n` +
-    `Entry Fee: ${tournament.entryFee} BDT\n` +
+    `Hello Buriram Org, I want to book a slot via WhatsApp for "${activeTournament.title}".\n` +
+    `Entry Fee: ${activeTournament.entryFee} BDT\n` +
     `My Email: ${currentUser?.email || "Not Logged In"}`
   );
   const buyWhatsAppUrl = `https://wa.me/${cleanPhone || "8801700000000"}?text=${whatsAppText}`;
 
   return (
     <div 
-      onClick={() => onSelect(tournament)}
-      className="relative overflow-hidden bg-gradient-to-br from-[#0c051a] via-[#0e0721] to-[#04020a] border border-violet-500/30 hover:border-violet-500/60 rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 flex flex-col gap-3 sm:gap-6 cursor-pointer transition-all duration-300 shadow-[0_0_50px_rgba(124,58,237,0.15)] group hover:shadow-[0_0_60px_rgba(124,58,237,0.25)]"
+      onClick={() => onSelect(activeTournament)}
+      className={`relative overflow-hidden bg-gradient-to-br from-[#0c051a] via-[#0e0721] to-[#04020a] border hover:border-violet-500/60 rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 flex flex-col gap-3 sm:gap-6 cursor-pointer transition-all duration-300 shadow-[0_0_50px_rgba(124,58,237,0.15)] group hover:shadow-[0_0_60px_rgba(124,58,237,0.25)] ${
+        isLive ? "border-rose-500/50 shadow-[0_0_50px_rgba(244,63,94,0.2)]" : "border-violet-500/30"
+      }`}
       style={{ fontFamily: "'Hind Siliguri', 'Comfortaa', sans-serif" }}
     >
       {/* Visual background accents */}
@@ -98,21 +109,24 @@ export default function NextMatchHero({
       <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4 border-b border-white/10 pb-2.5 sm:pb-4">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-rose-500"></span>
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isLive ? "bg-rose-400" : "bg-violet-400"}`}></span>
+            <span className={`relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 ${isLive ? "bg-rose-500" : "bg-violet-500"}`}></span>
           </span>
           <h2 className="text-base sm:text-2xl font-black text-white uppercase italic tracking-tight group-hover:text-violet-400 transition-colors">
-            {tournament.title}
+            {activeTournament.title}
           </h2>
+          {isNextDay && (
+            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-600/80 text-white font-mono ml-2">
+              {isBengali ? "আগামীকালের ম্যাচ" : "NEXT DAY"}
+            </span>
+          )}
         </div>
 
         {/* COUNTDOWN / TIME REMAINING / MATCH LIVE */}
-        {isExpired ? (
+        {isLive ? (
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-rose-600 text-white font-mono text-[10px] sm:text-xs font-black uppercase tracking-wider animate-pulse shadow-lg shadow-rose-600/40">
             <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white animate-ping"></span>
-            {tournament.status === "Completed"
-              ? (isBengali ? "ম্যাচ সমাপ্ত" : "MATCH ENDED")
-              : (isBengali ? "ম্যাচ লাইভ" : "MATCH LIVE")}
+            {isBengali ? "ম্যাচ লাইভ চলছে (বুকিং বন্ধ)" : "LIVE NOW (BOOKING CLOSED)"}
           </div>
         ) : (
           <div className="flex items-center gap-1.5 sm:gap-2 bg-[#120a26] border border-violet-500/30 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl sm:rounded-2xl">
